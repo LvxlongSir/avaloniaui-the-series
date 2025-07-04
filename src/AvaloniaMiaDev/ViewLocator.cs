@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using AvaloniaMiaDev.ViewModels;
@@ -12,47 +13,31 @@ namespace AvaloniaMiaDev;
 
 public class ViewLocator : IDataTemplate
 {
-    private readonly Dictionary<Type, Func<Control?>> _locator = new();
-
-    public ViewLocator()
-    {
-        RegisterViewFactory<MainViewModel, MainWindow>();
-        RegisterViewFactory<HomePageViewModel, HomePageView>();
-        RegisterViewFactory<ButtonPageViewModel, ButtonPageView>();
-        RegisterViewFactory<TextPageViewModel, TextPageView>();
-        RegisterViewFactory<ValueSelectionPageViewModel, ValueSelectionPageView>();
-        RegisterViewFactory<ImagePageViewModel, ImagePageView>();
-        RegisterViewFactory<GridPageViewModel, GridPageView>();
-        RegisterViewFactory<DragAndDropPageViewModel, DragAndDropPageView>();
-        RegisterViewFactory<CustomSplashScreenViewModel, CustomSplashScreenView>();
-        RegisterViewFactory<LoginPageViewModel, LoginPageView>();
-        RegisterViewFactory<SecretViewModel, SecretView>();
-        RegisterViewFactory<ChartsPageViewModel, ChartsPageView>();
-    }
-
-    public Control Build(object? data)
+    public Control? Build(object? data)
     {
         if (data is null)
         {
             return new TextBlock { Text = "No VM provided" };
         }
 
-        _locator.TryGetValue(data.GetType(), out var factory);
+        var name = Assembly.GetExecutingAssembly().GetName().Name+".Views."+data.GetType().Name!
+            .Replace("ViewModel", "View", StringComparison.Ordinal);
 
-        return factory?.Invoke() ?? new TextBlock { Text = $"VM Not Registered: {data.GetType()}" };
+        var type = Type.GetType(name);
+
+        if (type != null)
+        {
+            var obj  = Design.IsDesignMode
+                ? Activator.CreateInstance(type)
+                : Ioc.Default.GetService(type);
+            return obj as Control;
+        }
+
+        return new TextBlock { Text = "Not Found: " + name };
     }
 
     public bool Match(object? data)
     {
-        return data is ObservableObject;
+        return data is ViewModelBase;
     }
-
-    private void RegisterViewFactory<TViewModel, TView>()
-        where TViewModel : class
-        where TView : Control
-        => _locator.Add(
-            typeof(TViewModel),
-            Design.IsDesignMode
-                ? Activator.CreateInstance<TView>
-                : Ioc.Default.GetService<TView>);
 }

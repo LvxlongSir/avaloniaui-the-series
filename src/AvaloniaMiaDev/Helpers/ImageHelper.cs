@@ -16,7 +16,9 @@ public static class ImageHelper
         Uri resourceUri;
         if (!resourcePath.StartsWith("avares://"))
         {
-            var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
+
+            //var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name; //Bug when cross-platform, e.g. macOS, xxx.Desktop, but expected xxx, which is AvaloniaMiaDev here.
+            var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             resourceUri = new Uri($"avares://{assemblyName}/{resourcePath.TrimStart('/')}");
         }
         else

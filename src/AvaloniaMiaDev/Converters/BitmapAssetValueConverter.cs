@@ -38,7 +38,9 @@ public class BitmapAssetValueConverter : IValueConverter
         }
         else
         {
-            var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
+            //var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name; //Bug when cross-platform, e.g. macOS, xxx.Desktop, but expected xxx, which is AvaloniaMiaDev here.
+            var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+
             uri = new Uri($"avares://{assemblyName}/{rawUri.TrimStart('/')}");
         }
 

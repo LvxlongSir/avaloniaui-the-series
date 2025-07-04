@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using AvaloniaMiaDev.Services;
 using AvaloniaMiaDev.ViewModels;
@@ -29,8 +31,11 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var locator = new ViewLocator();
-        DataTemplates.Add(locator);
+        // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
+        // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+        DisableAvaloniaDataAnnotationValidation();
+        // var locator = new ViewLocator();
+        // DataTemplates.Add(locator);
 
         var services = new ServiceCollection();
         ConfigureViewModels(services);
@@ -39,7 +44,8 @@ public partial class App : Application
 
         // Typed-clients
         // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0#typed-clients
-        services.AddHttpClient<ILoginService, LoginService>(httpClient => httpClient.BaseAddress = new Uri("https://dummyjson.com/"));
+        services.AddHttpClient<ILoginService, LoginService>(httpClient =>
+            httpClient.BaseAddress = new Uri("https://dummyjson.com/"));
 
         var provider = services.BuildServiceProvider();
 
@@ -49,7 +55,10 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(vm);
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = vm,
+            };
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
@@ -57,6 +66,19 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void DisableAvaloniaDataAnnotationValidation()
+    {
+        // Get an array of plugins to remove
+        var dataValidationPluginsToRemove =
+            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
+
+        // remove each entry found
+        foreach (var plugin in dataValidationPluginsToRemove)
+        {
+            BindingPlugins.DataValidators.Remove(plugin);
+        }
     }
 
     [Singleton(typeof(MainViewModel))]
