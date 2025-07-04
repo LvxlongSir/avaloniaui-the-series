@@ -3,11 +3,11 @@
 
 ![macOS_Dev.jpg](macOS_Dev.jpg)
 ## main changes
-improved ViewLocator to generic;
-removed unnecessary design for mainwindow ctor;
-used GetExecutingAssembly instead of GetEntryAssembly, so to support cross-platform;
-migrated to Avalonia 11.1.5;
-migrated to .NET 9.0 so fixed bug: mainwindow cannot minimize on macOS;
+- improved ViewLocator to generic;
+- removed unnecessary design for mainwindow ctor;
+- used GetExecutingAssembly instead of GetEntryAssembly, so to support cross-platform;
+- migrated to Avalonia 11.1.5;
+- migrated to .NET 9.0 so fixed bug: mainwindow cannot minimize on macOS;
 
 
 --below from origin author
